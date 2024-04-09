@@ -1,21 +1,18 @@
 FROM python:3.11-slim-buster
 
-WORKDIR /.
+WORKDIR /app
 
 #De donde viene y a donde lo voy a enviar
 COPY requirements.txt /code/requirements.txt
 
 RUN apt-get update && apt-get install -y procps && pip install -U pip && rm /etc/localtime && ln -s /usr/share/zoneinfo/America/Mexico_City /etc/localtime
 
-COPY requirements.txt /requirements.txt
+COPY requirements.txt app/requirements.txt
 
-RUN pip install -r ./requirements.txt
+RUN pip install -r app/requirements.txt
 
-COPY ./model /model
+COPY main.py app/main.py
 
-COPY api.py /api.py
+EXPOSE 8501
 
-
-EXPOSE 5050
-
-CMD ["uvicorn","api:app", "--host", "0.0.0.0", "--port", "5050"]
+CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

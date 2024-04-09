@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  api-churn:
+    build: ./backend
+    ports:
+      - "5050:5050"
+
+  frontend-iris:
+    build: ./frontend
+    ports:
+      - "8501:8501"
+
+
