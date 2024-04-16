@@ -76,24 +76,37 @@ def get_api_key(api_key_query: str = Security(api_key_query)):
 #Al iniciar la API carga el modelo
 @app.on_event("startup")
 def load_model():
-    global model1
-    with open("../../model/model.pickle", "rb") as openfile: #te sales 2 niveles
-        model1 = pickle.load(openfile)
+
+    global logged_model
+    import mlflow
+    mlflow.set_tracking_uri('https://dagshub.com/wolburg/churn-app-2024-1.mlflow')
+    logged_model = 'runs:/7862fe6be9e94f189e19d539b1566440/ada_boost_classifier'
+
+    # Load model as a PyFuncModel.
+    logged_model = mlflow.pyfunc.load_model(logged_model)
+
+
+
 
 #Endpoint
 @app.get("/api/v1/classify")
 def classify(features_model: FeaturesModel, api_key : APIKey=Depends(get_api_key)):
     #Lista de valores que estamos trayendo den bodyrequest
-    features = [val for val in features_model.__dict__.values()][:-1]
+    #features = [val for val in features_model.__dict__.values()][:-1]
+    features = features_model.__dict__
 
-    prediction = model1.predict([features])
+    # Predict on a Pandas DataFrame.
+    import pandas as pd
+    prediction = loaded_model.predict(pd.DataFrame(features))
 
     label_dict= {
         0: "Not churn",
         1: "Churn"
     }
 
-    return {'prediction': label_dict[int(prediction[0])]}
+   # return {'prediction': label_dict[int(prediction[0])]}
+    return{"prediction":prediction}
+
 
 
 @app.get("/home")
